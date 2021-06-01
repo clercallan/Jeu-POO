@@ -124,10 +124,12 @@ class Hero(Creature):
     """The hero of the game.
         Is a creature. Has an inventory of elements. """
 
-    def __init__(self, name="Hero", hp=10, abbrv="@", strength=2, xp=0,lvl=1):
+    def __init__(self, name="Hero", hp=10, abbrv="@", strength=2, xp=0,lvl=1,mp=0):
         Creature.__init__(self, name, hp, abbrv, strength,xp)
         self._inventory = []
         self.lvl = lvl
+        self.mp = mp
+        self._gold = 0
 
     def description(self):
         """Description of the hero"""
@@ -162,6 +164,10 @@ class Hero(Creature):
         if elem.use(self):
             self._inventory.remove(elem)
     
+    def deleteEquipment(self, elem) :
+        self.checkEquipment(elem)
+        self._inventory.remove(elem)
+    
     def addXP(self,x) :
         """Add x XP's points to the hero"""
         self.xp += x
@@ -177,6 +183,10 @@ class Hero(Creature):
                     self.strength+=1
                 else :
                     break
+    
+    def soin(self) :
+        """A magic potion who heals the hero"""
+        self.hp = 8+self.lvl*2
 
 
 class Equipment(Element):
@@ -201,7 +211,6 @@ class Equipment(Element):
         else:
             theGame().addMessage("The " + creature.name + " uses the " + self.name)
             return self.usage(self, creature)
-
 
 class Room(object):
     """A rectangular room in the map"""
@@ -415,6 +424,13 @@ class Map(object):
                 if self.get(c + d) in [Map.ground, self.hero]:
                     self.move(e, d)
 
+    def teleportation(self) :
+        """Teleport the hero to a random position on the map"""
+        ci = self.pos(self.hero)
+        c = self.randRoom().randEmptyCoord(self)
+        self._mat[c.y][c.x] = self.hero
+        self._mat[ci.y][ci.x] = Map.ground
+
 
 def heal(creature):
     """Heal the creature"""
@@ -528,21 +544,5 @@ def theGame(game=Game()):
     """Game singleton"""
     return game
 
-m = Map()
-print(m.hero.xp)
-print(m.hero.lvl)
-print(m.hero.hp,m.hero.strength)
-
-Creature("Bat",1,xp=6).meet(m.hero)
-print(m.hero.xp)
-print(m.hero.lvl)
-print(m.hero.hp,m.hero.strength)
-
-Creature("Bat",3,xp=10).meet(m.hero)
-print(m.hero.xp)
-print(m.hero.lvl)
-print(m.hero.hp,m.hero.strength)
-
 getch = _find_getch()
-"""
-theGame().play()"""
+#theGame().play()
